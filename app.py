@@ -1,72 +1,111 @@
 from flask import Flask, request, jsonify
+from datetime import datetime, timedelta
+import random
+import uuid
 
 app = Flask(__name__)
 
+# Single cat and litterbox data
+CAT = {"id": "cat_001", "name": "Atticus", "weight": 9, "breed": "Domestic Longhair"}
+LITTER_BOX = {"id": "box_001", "location": "living_room", "type": "manual"}
+
+def generate_fake_litterbox_data(days=7):
+    """Generate fake litterbox usage data for the specified number of days."""
+    data = []
+
+    # Start from 7 days ago
+    start_date = datetime.now() - timedelta(days=days)
+    
+    for day in range(days):
+        current_date = start_date + timedelta(days=day)
+
+        # cat uses litterbox 2-4 times a day
+        daily_uses = random.randint(2, 4)
+
+        for use in range(daily_uses):
+            # Random time during the day
+            hour = random.randint(6, 23)
+            minute = random.randint(0, 59)
+            second = random.randint(0, 59)
+
+            enter_time = current_date.replace(hour=hour, minute=minute, second=second)
+    
+            # Duration between 30 seconds to 5 minutes
+            duration_seconds = random.randint(30, 300)
+            exit_time = enter_time + timedelta(seconds=duration_seconds)
+
+            # weight calculation
+            base_weight = CAT['weight']
+            weight_enter = round(base_weight + random.uniform(-0.1, 0.1), 2)
+            
+            # Weight loss between 0.05 and 1 lb
+            waste_weight = round(random.uniform(0.05, 1.0), 2)
+            weight_exit = round(weight_enter - waste_weight, 2)
+
+            entry = {
+                "id": str(uuid.uuid4()),
+                "cat_id": CAT['id'],
+                "litterbox_id": LITTER_BOX['id'],
+                "enter_time": enter_time.isoformat(),
+                "exit_time": exit_time.isoformat(),
+                "weight_enter": weight_enter,
+                "weight_exit": weight_exit,
+                "timestamp": datetime.now().isoformat()
+            }
+
+            data.append(entry)
+
+        # sort by enter_time
+        data.sort(key=lambda x: x['enter_time'])
+    return data
+
+# Generate the fake data once when the server starts
+FAKE_LITTERBOX_DATA = generate_fake_litterbox_data(7)
+
+@app.route('/')
+def home():
+    """API information endpoint."""
+    return jsonify({
+        "message": "Welcome to the Cat Litterbox API",
+        "endpoints": {
+            "/cat": "Get cat information",
+            "/litterbox_data": "Get simulated litterbox usage data"
+        }
+    })
+
 @app.route('/litterbox_data', methods=['GET'])
 def get_litterbox_data():
-    # Simulated data for the litterbox
-    data = [
-        {
-            "enter_time": "2025-07-10T07:12:03",
-            "exit_time": "2025-07-10T07:14:23",
-            "weight_enter": 10.55,
-            "weight_exit": 10.62
-        },
-        {
-            "enter_time": "2025-07-10T12:43:10",
-            "exit_time": "2025-07-10T12:45:15",
-            "weight_enter": 10.57,
-            "weight_exit": 10.66
-        },
-        {
-            "enter_time": "2025-07-11T08:01:55",
-            "exit_time": "2025-07-11T08:03:30",
-            "weight_enter": 10.63,
-            "weight_exit": 10.70
-        },
-        {
-            "enter_time": "2025-07-11T19:15:21",
-            "exit_time": "2025-07-11T19:17:05",
-            "weight_enter": 10.65,
-            "weight_exit": 10.72
-        },
-        {
-            "enter_time": "2025-07-12T06:45:32",
-            "exit_time": "2025-07-12T06:47:10",
-            "weight_enter": 10.62,
-            "weight_exit": 10.68
-        },
-        {
-            "enter_time": "2025-07-13T13:30:40",
-            "exit_time": "2025-07-13T13:33:20",
-            "weight_enter": 10.66,
-            "weight_exit": 10.73
-        },
-        {
-            "enter_time": "2025-07-14T09:22:15",
-            "exit_time": "2025-07-14T09:24:05",
-            "weight_enter": 10.69,
-            "weight_exit": 10.76
-        },
-        {
-            "enter_time": "2025-07-15T17:50:11",
-            "exit_time": "2025-07-15T17:51:59",
-            "weight_enter": 10.72,
-            "weight_exit": 10.79
-        },
-        {
-            "enter_time": "2025-07-16T10:18:09",
-            "exit_time": "2025-07-16T10:20:40",
-            "weight_enter": 10.75,
-            "weight_exit": 10.81
-        },
-        {
-            "enter_time": "2025-07-17T07:05:03",
-            "exit_time": "2025-07-17T07:07:45",
-            "weight_enter": 10.77,
-            "weight_exit": 10.84
-        }
-    ]
-    return jsonify(data)
+    """Get all litterbox usage with optional filtering."""
+
+    # Query parameters for filtering
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    # filter data based on query parameters
+    filtered_data = FAKE_LITTERBOX_DATA.copy()
+
+    if start_date:
+        try:
+            start_date = datetime.fromisoformat(start_date)
+            filtered_data = [entry for entry in filtered_data if datetime.fromisoformat(entry['enter_time']) >= start_date]
+        except ValueError:
+            return jsonify({"error": "Invalid start_date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"}), 400
+
+    if end_date:
+        try:
+            end_date = datetime.fromisoformat(end_date)
+            filtered_data = [entry for entry in filtered_data if datetime.fromisoformat(entry['exit_time']) <= end_date]
+        except ValueError:
+            return jsonify({"error": "Invalid end_date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"}), 400
+
+    return jsonify(filtered_data)
+
+
+@app.route('/cat', methods=['GET'])
+def get_cat_info():
+    """Get information about the cat."""
+    return jsonify(CAT)
+
+
     
     
