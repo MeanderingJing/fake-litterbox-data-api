@@ -9,7 +9,7 @@ app = Flask(__name__)
 CAT = {"id": "cat_001", "name": "Atticus", "weight": 9, "breed": "Domestic Longhair"}
 LITTER_BOX = {"id": "box_001", "location": "living_room", "type": "manual"}
 
-def generate_fake_litterbox_data(days=7):
+def generate_fake_litterbox_usage_data(days=7):
     """Generate fake litterbox usage data for the specified number of days."""
     data = []
 
@@ -60,7 +60,7 @@ def generate_fake_litterbox_data(days=7):
     return data
 
 # Generate the fake data once when the server starts
-FAKE_LITTERBOX_DATA = generate_fake_litterbox_data(7)
+FAKE_LITTERBOX_USAGE_DATA = generate_fake_litterbox_usage_data(7)
 
 @app.route('/')
 def home():
@@ -69,12 +69,12 @@ def home():
         "message": "Welcome to the Cat Litterbox API",
         "endpoints": {
             "/cat": "Get cat information",
-            "/litterbox_data": "Get simulated litterbox usage data"
+            "/litterbox_usage_data": "Get simulated litterbox usage data"
         }
     })
 
-@app.route('/litterbox_data', methods=['GET'])
-def get_litterbox_data():
+@app.route('/litterbox_usage_data', methods=['GET'])
+def get_litterbox_usage_data():
     """Get all litterbox usage with optional filtering."""
 
     # Query parameters for filtering
@@ -82,7 +82,7 @@ def get_litterbox_data():
     end_date = request.args.get('end_date')
 
     # filter data based on query parameters
-    filtered_data = FAKE_LITTERBOX_DATA.copy()
+    filtered_data = FAKE_LITTERBOX_USAGE_DATA.copy()
 
     if start_date:
         try:
