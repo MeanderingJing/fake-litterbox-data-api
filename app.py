@@ -36,11 +36,13 @@ def generate_fake_litterbox_usage_data(days=7):
 
             # weight calculation
             base_weight = CAT['weight']
-            weight_enter = round(base_weight + random.uniform(-0.1, 0.1), 2)
+            litterbox_weight = 2.0  # assume litterbox itself weighs 2 lbs
+            # Weight when entering the litterbox is base weight + litterbox weight
+            weight_enter = round(base_weight + random.uniform(-0.1, 0.1), 2) + litterbox_weight
             
             # Weight loss between 0.05 and 1 lb
             waste_weight = round(random.uniform(0.05, 1.0), 2)
-            weight_exit = round(weight_enter - waste_weight, 2)
+            weight_exit = round(litterbox_weight + waste_weight, 2)
 
             entry = {
                 "id": str(uuid.uuid4()),
