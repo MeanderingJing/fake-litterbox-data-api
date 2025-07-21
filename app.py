@@ -6,7 +6,7 @@ import uuid
 app = Flask(__name__)
 
 # Single cat and litterbox data
-CAT = {"id": "cat_001", "name": "Atticus", "weight": 9, "breed": "Domestic Longhair"}
+CAT = {"id": 1, "name": "Atticus", "weight": 9, "breed": "Domestic Longhair"}
 LITTER_BOX = {"id": "box_001", "location": "living_room", "type": "manual"}
 
 def generate_fake_litterbox_usage_data(days=7):
