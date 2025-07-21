@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 # Single cat and litterbox data
 CAT = {"id": 1, "name": "Atticus", "weight": 9, "breed": "Domestic Longhair"}
-LITTER_BOX = {"id": "box_001", "location": "living_room", "type": "manual"}
+LITTER_BOX = {"id": 1, "location": "living_room", "type": "manual"}
 
 def generate_fake_litterbox_usage_data(days=7):
     """Generate fake litterbox usage data for the specified number of days."""
